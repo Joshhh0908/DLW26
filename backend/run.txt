@@ -1,3 +1,6 @@
 pip install Flask
 pip install Werkzeug
 pip install PyJWT
+pip install firebase-admin
+pip install python-dotenv
+pip install flask flask-cors

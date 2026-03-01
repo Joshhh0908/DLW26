@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 const Login = () => {
-  const [userId, setUserId] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
@@ -18,7 +18,7 @@ const Login = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: userId,
+          username: username,
           password,
         }),
       });
@@ -42,7 +42,7 @@ const Login = () => {
         <h2>Login</h2>
 
         <form onSubmit={handleSubmit}>
-          <input type="text" placeholder="User ID" value={userId} onChange={(e) => setUserId(e.target.value)} required />
+          <input type="text" placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} required />
           <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           <button type="submit">Log In</button>
         </form>

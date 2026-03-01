@@ -3,8 +3,7 @@
   import { useState } from "react";
 
   const CreateAccount = () => {
-    const [userId, setUserId] = useState("");
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const navigate = useNavigate();
@@ -23,9 +22,8 @@
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            user_id: userId,
-            email,
-            password,
+            username: username,
+            password
           }),
         });
 
@@ -52,18 +50,12 @@
           <form onSubmit={handleSubmit}>
             <input
               type="text"
-              placeholder="User ID"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
             />
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+
             <input
               type="password"
               placeholder="Password"
