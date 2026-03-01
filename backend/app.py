@@ -9,8 +9,6 @@ app = Flask(__name__)
 
 #ROUTES
 
-
-
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
