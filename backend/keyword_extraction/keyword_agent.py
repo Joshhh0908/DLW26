@@ -62,7 +62,7 @@ INPUT TEXT:
     )
     result = agent.invoke({"messages": [{"role": "user", "content": prompt}]})
 
-    print(result)
+    # print(result)
     if isinstance(result, dict) and "structured_response" in result:
         return result["structured_response"]["items"]
 

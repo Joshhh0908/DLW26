@@ -5,9 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/register": "http://localhost:5000",
-      "/login": "http://localhost:5000",
-      "/verify-token": "http://localhost:5000",
+      "/api": "http://localhost:5000",
     },
-  },
+  }
 });

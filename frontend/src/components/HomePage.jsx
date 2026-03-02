@@ -18,8 +18,57 @@ const HomePage = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    // In a real app, you would process the file here!
-    console.log("File dropped!");
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      uploadFiles(e.target.files);
+    }
+  };
+
+  // --- API UPLOAD LOGIC ---
+
+  const uploadFiles = async (files) => {
+    setIsUploading(true);
+
+    // Create a FormData object (This is how browsers send files to servers)
+    const formData = new FormData();
+    formData.append('username', username);
+    
+    // Your teammate's code looks for a list of files called "notes"
+    Array.from(files).forEach((file) => {
+      formData.append('notes', file);
+    });
+
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('/api/notes-uploading', {
+        method: 'POST',
+        headers: {
+          // We MUST send the token, or the @token_required route will block us
+          'Authorization': `Bearer ${token}` 
+          // Note: Do NOT set 'Content-Type' manually when sending FormData!
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        // Success! Send the user to the study dashboard to see their graph
+        navigate('/study'); 
+      } else {
+        alert("There was a problem uploading your files. Please try again.");
+        setIsUploading(false);
+      }
+    } catch (error) {
+      console.error("Upload Error:", error);
+      alert("Could not connect to the backend server. Is Flask running?");
+      setIsUploading(false);
+    }
   };
 
   return (
