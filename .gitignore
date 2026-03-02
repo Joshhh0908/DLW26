@@ -1,2 +1,3 @@
 /backend/secrets
 /backend/.env
+*.pyc

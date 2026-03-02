@@ -4,3 +4,5 @@ pip install PyJWT
 pip install firebase-admin
 pip install python-dotenv
 pip install flask flask-cors
+pip install PyPDF2
+pip install langchain
