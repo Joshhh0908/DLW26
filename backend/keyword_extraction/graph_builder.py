@@ -1,5 +1,5 @@
-from models import Note, Link
-from equation_utils import (
+from .models import Note, Link
+from .equation_utils import (
     extract_equations,
     normalize_equation,
     tree_signature,

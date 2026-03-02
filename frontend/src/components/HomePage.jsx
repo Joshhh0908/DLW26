@@ -86,7 +86,7 @@ const HomePage = () => {
     const token = localStorage.getItem('token');
 
     try {
-      const response = await fetch('http://localhost:5000/notes-uploading', {
+      const response = await fetch('/api/notes-uploading', {
         method: 'POST',
         headers: {
           // We MUST send the token, or the @token_required route will block us

@@ -10,6 +10,9 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 
+from keyword_extraction.process_notes import process_notes
+
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -53,7 +56,7 @@ def token_required(f):
 
     return decorated
 
-@app.route('/login', methods=['POST'])
+@app.route('/api/login', methods=['POST'])
 def login(): 
     data = request.json
     print(data)
@@ -85,7 +88,7 @@ def login():
         'token': token
     })
 
-@app.route('/register', methods=['POST'])
+@app.route('/api/register', methods=['POST'])
 def register_user():
     data = request.json
     print(data)
@@ -111,12 +114,47 @@ def register_user():
     users_ref.document(username).set(user_doc)
     return jsonify({'message': 'Account created successfully'}), 201
 
-@app.route("/notes-uploading")
+@app.route("/api/upload-notes", methods=["POST"])
 @token_required
 def upload_notes():
-    data = request.json
-    username = data.get("username")
+    print("reached")
+    username = request.form.get("username")
     note_files = request.files.getlist("notes")
+
+    if not note_files:
+        return jsonify({"error": "No files uploaded under field 'notes'"}), 400
+
+    os.makedirs("uploads", exist_ok=True)
+
+    saved_paths = []
+    try:
+        # Save temp files
+        for f in note_files:
+            if not f or f.filename == "":
+                continue
+            filename = secure_filename(f.filename)
+            save_path = os.path.join("uploads", filename)
+            f.save(save_path)
+            saved_paths.append(save_path)
+
+        all_notes = process_notes(saved_paths)
+
+        return jsonify({
+            "message": "Upload successful",
+            "username": username,
+            "count": len(saved_paths),
+            "notes": all_notes,
+        }), 200
+
+    finally:
+        # Cleanup temp files
+        for p in saved_paths:
+            try:
+                os.remove(p)
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                print(f"Cleanup failed for {p}: {e}")
 
 if __name__ == '__main__':
     app.run(debug=True)

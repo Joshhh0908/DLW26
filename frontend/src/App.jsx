@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/login";
+import Notes from "./pages/notes";
 import CreateAccount from "./pages/createAccount";
 import PrivateRoute from "./components/privateRoute";
 import PopulatedDashboard from "./components/PopulatedDashboard";
-import HomePage from "./components/HomePage";
 import StudyDashboard from "./components/StudyDashboard";
 import DashboardController from "./components/DashboardController";
 
@@ -23,6 +23,7 @@ function App() {
           
           {/* Your Knowledge Graph Page */}
           <Route path="/study" element={<StudyDashboard />} />
+          <Route path="/notes" element={<Notes />} />
         </Route>
       </Routes>
     </Router>

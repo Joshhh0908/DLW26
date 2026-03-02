@@ -14,7 +14,7 @@ const DashboardController = () => {
         const token = localStorage.getItem('token');
         
         // This makes a request to a theoretical backend route to get the user's data
-        const response = await fetch('http://localhost:5000/get-study-sets', {
+        const response = await fetch('/api/get-study-sets', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
