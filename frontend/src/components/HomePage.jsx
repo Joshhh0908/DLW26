@@ -1,59 +1,20 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { 
-  Home, 
-  Layers, 
-  Calendar, 
-  MessageSquare, 
-  Settings, 
-  Bell, 
-  User, 
-  UploadCloud, 
-  Network, 
-  Swords, 
-  LogOut,
-  Loader2 // <-- Added a loading spinner icon
+  Home, Layers, Calendar, Settings, 
+  UploadCloud, FileText, Link as LinkIcon, Sparkles
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null); // Reference to our hidden file input
-  
-  const [username, setUsername] = useState('Student');
-  const [greeting, setGreeting] = useState('Good evening');
-  
-  // New States for Drag & Drop
   const [isDragging, setIsDragging] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername) setUsername(storedUsername);
-
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Good morning');
-    else if (hour < 18) setGreeting('Good afternoon');
-    else setGreeting('Good evening');
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    navigate('/');
-  };
-
-  // --- DRAG AND DROP LOGIC ---
-
+  // Simple drag-and-drop handlers for visual feedback
   const handleDragOver = (e) => {
-    e.preventDefault(); // Prevents the browser from opening the PDF in a new tab
+    e.preventDefault();
     setIsDragging(true);
   };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-  };
-
+  const handleDragLeave = () => setIsDragging(false);
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
@@ -111,153 +72,109 @@ const HomePage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-[#F4F7FB] font-sans">
+    <div className="flex h-screen w-screen bg-[#060B14] font-sans text-white overflow-hidden relative selection:bg-blue-500/30">
       
-      {/* --- LEFT SIDEBAR (Unchanged) --- */}
-      <div className="w-64 bg-white/60 backdrop-blur-xl border-r border-gray-100 flex flex-col justify-between">
+      {/* --- SUBTLE BLUE GRID BACKGROUND --- */}
+      <div className="absolute inset-0 z-0 pointer-events-none" style={{
+        backgroundImage: `linear-gradient(to right, rgba(59, 130, 246, 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgba(59, 130, 246, 0.07) 1px, transparent 1px)`,
+        backgroundSize: '80px 80px',
+      }}></div>
+
+      {/* --- LEFT SIDEBAR (Standardized across app) --- */}
+      <div className="absolute top-0 left-0 w-64 h-full bg-[#0B1120] border-r border-gray-800/50 flex flex-col justify-between z-30 shadow-2xl">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+          <div className="flex items-center gap-3 mb-10 cursor-pointer" onClick={() => navigate('/home')}>
+            <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]">
               <Layers className="text-white w-5 h-5" />
             </div>
-            <span className="font-bold text-xl text-gray-800">StudyFetch</span>
+            <span className="font-bold text-xl text-white tracking-wide">StudyFetch</span>
           </div>
 
           <nav className="space-y-2">
-            <button className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium transition-colors">
-              <Home className="w-5 h-5" />
-              Home
+            <button className="flex items-center gap-3 w-full px-4 py-3 bg-blue-600/10 text-blue-400 rounded-xl font-medium border border-blue-500/20 transition-all shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]">
+              <Home className="w-5 h-5" /> Home
             </button>
-            <div className="pt-4 pb-2">
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4">Locked Features</span>
-            </div>
-            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
-              <Layers className="w-5 h-5 opacity-50" />
-              My Sets
+            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+              <Layers className="w-5 h-5" /> My Sets
             </button>
-            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
-              <Calendar className="w-5 h-5 opacity-50" />
-              Study Plan
-            </button>
-            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
-              <MessageSquare className="w-5 h-5 opacity-50" />
-              Chat
+            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+              <Calendar className="w-5 h-5" /> Study Plan
             </button>
           </nav>
         </div>
-        <div className="p-6 space-y-2">
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
-            <Settings className="w-5 h-5" />
-            Settings
-          </button>
-          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
-            <LogOut className="w-5 h-5" />
-            Logout
+
+        <div className="p-6">
+          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+            <Settings className="w-5 h-5" /> Settings
           </button>
         </div>
       </div>
 
-      {/* --- MAIN CONTENT AREA --- */}
-      <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-tr from-[#F4F7FB] via-white to-[#FFF4E5]">
+      {/* --- MAIN CONTENT AREA (The Dropzone) --- */}
+      <div className="absolute top-0 right-0 bottom-0 left-64 overflow-y-auto z-10 flex flex-col items-center justify-center p-10">
         
-        <div className="absolute top-6 right-8 flex items-center gap-4 z-10">
-          <button className="p-2 text-gray-400 hover:text-gray-600 relative">
-            <Bell className="w-6 h-6" />
-            <span className="absolute top-1 right-2 w-2 h-2 bg-red-400 rounded-full"></span>
-          </button>
-          <div className="w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-gray-500 font-bold">
-            {username.charAt(0).toUpperCase()}
-          </div>
-        </div>
-
-        <div className="flex-1 flex flex-col items-center justify-center p-12 max-w-5xl mx-auto w-full">
+        <div className="max-w-3xl w-full flex flex-col items-center">
           
-          <div className="w-full flex items-end justify-between mb-8">
-            <h1 className="text-5xl font-extrabold text-[#A67B5B] tracking-tight">
-              {greeting}, {username}!
+          {/* Header Text */}
+          <div className="text-center mb-10">
+            <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-full mb-6 border border-blue-500/20">
+              <Sparkles className="w-6 h-6 text-blue-400" />
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tight mb-4">
+              What are we learning today?
             </h1>
+            <p className="text-gray-400 text-lg max-w-xl mx-auto">
+              Upload your course materials, and our AI will generate an interactive Knowledge Map and Quiz Battle to test your retention.
+            </p>
           </div>
 
-          <div className="flex items-center w-full gap-8">
-            <div className="hidden md:flex flex-col items-center justify-center w-32 h-40 bg-white/50 backdrop-blur-sm rounded-2xl border border-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-                  <User className="w-8 h-8 text-blue-500" />
-               </div>
-               <span className="text-sm font-semibold text-gray-600">Ready to Learn?</span>
+          {/* Massive Dropzone Area */}
+          <div 
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`w-full rounded-[32px] border-2 border-dashed transition-all duration-300 flex flex-col items-center justify-center p-16 cursor-pointer group shadow-2xl
+              ${isDragging 
+                ? 'border-blue-500 bg-blue-500/10 scale-[1.02]' 
+                : 'border-gray-600 bg-[#0B1120]/60 backdrop-blur-md hover:border-blue-400 hover:bg-[#0B1120]/90'
+              }
+            `}
+          >
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mb-6 transition-all duration-300
+              ${isDragging ? 'bg-blue-500 shadow-[0_0_30px_rgba(59,130,246,0.6)]' : 'bg-gray-800 group-hover:bg-blue-600 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]'}
+            `}>
+              <UploadCloud className={`w-12 h-12 ${isDragging ? 'text-white' : 'text-gray-400 group-hover:text-white'}`} />
             </div>
-
-            {/* --- HIDDEN FILE INPUT --- */}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileSelect} 
-              className="hidden" 
-              multiple 
-              accept=".pdf,.txt,.doc,.docx" // Add or remove file types as needed
-            />
-
-            {/* --- INTERACTIVE DROPZONE --- */}
-            <div 
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => !isUploading && fileInputRef.current.click()} // Opens the file browser
-              className={`flex-1 backdrop-blur-md border-4 border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center transition-all shadow-lg 
-                ${isDragging 
-                  ? 'border-blue-500 bg-blue-50 scale-[1.02]' // Highlight when dragging over
-                  : 'border-gray-300 bg-white/80 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer group'
-                }
-                ${isUploading ? 'opacity-75 cursor-not-allowed' : ''}
-              `}
-            >
-              {isUploading ? (
-                // Loading State
-                <div className="flex flex-col items-center animate-pulse">
-                  <Loader2 className="w-16 h-16 text-blue-500 animate-spin mb-4" />
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Analyzing your notes...</h2>
-                  <p className="text-xl text-gray-500">Generating knowledge graph</p>
-                </div>
-              ) : (
-                // Normal State
-                <>
-                  <div className={`w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 transition-transform ${!isDragging && 'group-hover:scale-110'}`}>
-                    <UploadCloud className={`w-12 h-12 ${isDragging ? 'text-blue-600' : 'text-blue-400'}`} />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                    {isDragging ? 'Drop your files here!' : 'Drag & drop your lecture slides or PDFs here,'}
-                  </h2>
-                  <p className="text-xl text-gray-500">
-                    {isDragging ? 'We will take it from here.' : (
-                      <>or <span className="text-blue-500 font-semibold underline decoration-2 underline-offset-4">click to browse</span>.</>
-                    )}
-                  </p>
-                </>
-              )}
-            </div>
-
+            
+            <h3 className="text-2xl font-bold text-white mb-2">Drag & Drop your files here</h3>
+            <p className="text-gray-500 mb-8 font-medium">Supports PDF, DOCX, PPTX, and TXT (Max 50MB)</p>
+            
+            <button className="bg-white text-gray-900 hover:bg-gray-200 px-8 py-3 rounded-full font-bold transition-colors shadow-lg">
+              Browse Files
+            </button>
           </div>
 
-          <div className="mt-16 flex items-center justify-center gap-12 text-gray-600 font-medium">
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                <UploadCloud className="w-6 h-6 text-orange-600" />
+          {/* Alternative Input Methods */}
+          <div className="grid grid-cols-2 gap-6 w-full mt-8">
+            <button className="bg-[#0B1120]/60 hover:bg-[#0B1120] border border-gray-700 hover:border-blue-500/50 backdrop-blur-md p-6 rounded-2xl flex items-center gap-4 transition-all group">
+              <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:bg-blue-500/20">
+                <FileText className="w-5 h-5 text-blue-400" />
               </div>
-              <span><span className="text-xs font-bold text-orange-500 mr-1">1</span> Upload Notes</span>
-            </div>
-            <div className="w-16 h-px bg-gray-300"></div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <Network className="w-6 h-6 text-blue-600" />
+              <div className="text-left">
+                <h4 className="font-bold text-white">Paste Text</h4>
+                <p className="text-sm text-gray-500">Copy & paste notes directly</p>
               </div>
-              <span><span className="text-xs font-bold text-blue-500 mr-1">2</span> Generate Knowledge Map</span>
-            </div>
-            <div className="w-16 h-px bg-gray-300"></div>
-            <div className="flex flex-col items-center gap-3">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <Swords className="w-6 h-6 text-purple-600" />
+            </button>
+
+            <button className="bg-[#0B1120]/60 hover:bg-[#0B1120] border border-gray-700 hover:border-red-500/50 backdrop-blur-md p-6 rounded-2xl flex items-center gap-4 transition-all group">
+              <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 group-hover:bg-red-500/20">
+                <LinkIcon className="w-5 h-5 text-red-400" />
               </div>
-              <span><span className="text-xs font-bold text-purple-500 mr-1">3</span> Battle Concepts</span>
-            </div>
+              <div className="text-left">
+                <h4 className="font-bold text-white">Link a Video</h4>
+                <p className="text-sm text-gray-500">Paste a YouTube URL</p>
+              </div>
+            </button>
           </div>
 
         </div>
