@@ -36,7 +36,7 @@ const KnowledgeGraph = ({ graphData, onNodeClick, selectedNode }) => {
     <div 
       id="canvas-container"
       // Bulletproof CSS sizing
-      className={`absolute inset-0 w-full h-full overflow-hidden ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+      className={`w-full h-full overflow-hidden ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

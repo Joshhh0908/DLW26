@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Home, Layers, Calendar, Settings, 
   UploadCloud, FileText, Link as LinkIcon, Sparkles
@@ -8,6 +8,8 @@ import { useNavigate } from 'react-router-dom';
 const HomePage = () => {
   const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Simple drag-and-drop handlers for visual feedback
   const handleDragOver = (e) => {
@@ -34,39 +36,29 @@ const HomePage = () => {
 
   const uploadFiles = async (files) => {
     setIsUploading(true);
-
-    // Create a FormData object (This is how browsers send files to servers)
-    const formData = new FormData();
-    formData.append('username', username);
-    
-    // Your teammate's code looks for a list of files called "notes"
-    Array.from(files).forEach((file) => {
-      formData.append('notes', file);
-    });
-
-    const token = localStorage.getItem('token');
-
     try {
-      const response = await fetch('/api/notes-uploading', {
+      const formData = new FormData();
+      Array.from(files).forEach((file) => formData.append('notes', file));
+
+      const token = localStorage.getItem('token');
+
+      const res = await fetch('/api/upload-notes', {
         method: 'POST',
-        headers: {
-          // We MUST send the token, or the @token_required route will block us
-          'Authorization': `Bearer ${token}` 
-          // Note: Do NOT set 'Content-Type' manually when sending FormData!
-        },
-        body: formData
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
       });
 
-      if (response.ok) {
-        // Success! Send the user to the study dashboard to see their graph
-        navigate('/study'); 
+      const data = await res.json();
+
+      if (res.ok) {
+        navigate('/study');
       } else {
-        alert("There was a problem uploading your files. Please try again.");
-        setIsUploading(false);
+        alert(data?.error || "Upload failed");
       }
-    } catch (error) {
-      console.error("Upload Error:", error);
-      alert("Could not connect to the backend server. Is Flask running?");
+    } catch (err) {
+      console.error(err);
+      alert("Could not connect to backend server.");
+    } finally {
       setIsUploading(false);
     }
   };
@@ -80,39 +72,16 @@ const HomePage = () => {
         backgroundSize: '80px 80px',
       }}></div>
 
-      {/* --- LEFT SIDEBAR (Standardized across app) --- */}
-      <div className="absolute top-0 left-0 w-64 h-full bg-[#0B1120] border-r border-gray-800/50 flex flex-col justify-between z-30 shadow-2xl">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-10 cursor-pointer" onClick={() => navigate('/home')}>
-            <div className="w-8 h-8 bg-[#3B82F6] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]">
-              <Layers className="text-white w-5 h-5" />
-            </div>
-            <span className="font-bold text-xl text-white tracking-wide">StudyFetch</span>
-          </div>
-
-          <nav className="space-y-2">
-            <button className="flex items-center gap-3 w-full px-4 py-3 bg-blue-600/10 text-blue-400 rounded-xl font-medium border border-blue-500/20 transition-all shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]">
-              <Home className="w-5 h-5" /> Home
-            </button>
-            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-              <Layers className="w-5 h-5" /> My Sets
-            </button>
-            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-              <Calendar className="w-5 h-5" /> Study Plan
-            </button>
-          </nav>
-        </div>
-
-        <div className="p-6">
-          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-            <Settings className="w-5 h-5" /> Settings
-          </button>
-        </div>
-      </div>
-
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.docx,.pptx,.txt"
+        multiple={false}          // you said 1 PDF for now
+        className="hidden"
+        onChange={handleFileSelect}
+      />
       {/* --- MAIN CONTENT AREA (The Dropzone) --- */}
-      <div className="absolute top-0 right-0 bottom-0 left-64 overflow-y-auto z-10 flex flex-col items-center justify-center p-10">
-        
+      <div className="absolute inset-0 overflow-y-auto z-10 flex flex-col items-center justify-center p-10">        
         <div className="max-w-3xl w-full flex flex-col items-center">
           
           {/* Header Text */}
@@ -148,9 +117,14 @@ const HomePage = () => {
             
             <h3 className="text-2xl font-bold text-white mb-2">Drag & Drop your files here</h3>
             <p className="text-gray-500 mb-8 font-medium">Supports PDF, DOCX, PPTX, and TXT (Max 50MB)</p>
-            
-            <button className="bg-white text-gray-900 hover:bg-gray-200 px-8 py-3 rounded-full font-bold transition-colors shadow-lg">
-              Browse Files
+                        
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+              className="bg-white text-gray-900 hover:bg-gray-200 px-8 py-3 rounded-full font-bold transition-colors shadow-lg disabled:opacity-60"
+            >
+              {isUploading ? "Uploading..." : "Browse Files"}
             </button>
           </div>
 

@@ -45,7 +45,7 @@ const MainLayout = () => {
       </div>
 
       {/* PAGE CONTENT */}
-      <div className="flex-1 h-full overflow-hidden relative">
+      <div className="flex-1 h-full overflow-auto relative">
         <Outlet />
       </div>
 
