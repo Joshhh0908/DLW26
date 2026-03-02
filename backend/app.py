@@ -53,12 +53,6 @@ def token_required(f):
 
     return decorated
 
-@app.route('/verify-token', methods=['GET'])
-@token_required
-def verify_token():
-    return jsonify({'valid': True, 'username': request.username})
-
-
 @app.route('/login', methods=['POST'])
 def login(): 
     data = request.json
@@ -117,7 +111,12 @@ def register_user():
     users_ref.document(username).set(user_doc)
     return jsonify({'message': 'Account created successfully'}), 201
 
-
+@app.route("/notes-uploading")
+@token_required
+def upload_notes():
+    data = request.json
+    username = data.get("username")
+    note_files = request.files.getlist("notes")
 
 if __name__ == '__main__':
     app.run(debug=True)
