@@ -1,4 +1,4 @@
-from llm import extract_keywords
+from keyword_agent import extract_keywords
 from graph_builder import build_notes, create_equation_links
 import PyPDF2
 
@@ -11,8 +11,10 @@ demarcator_sections = "^&^"
 
 def process_slides(text):
     keywords = extract_keywords(text)
+    print("keywords extracted")
     notes = build_notes(keywords, text)
-    create_equation_links(notes)
+    print("note objects made")
+    # create_equation_links(notes)
     return notes
 
 def extract_text_from_pdf(pdf_path):
@@ -33,16 +35,18 @@ def main():
     # Process each PDF
     for pdf_file in pdf_files:
         text = extract_text_from_pdf(pdf_file)
+        print("pdf to text done")
         notes = process_slides(text)
         all_notes.extend(notes)
 
     # Generate cross-note equation links
-    create_equation_links(all_notes)
+    # create_equation_links(all_notes)
 
     # Print the results
     for note in all_notes:
         print("\n====================")
         print("Concept:", note.name)
+        print("Summary: ", note.associated_phrases)
         print("Equations:", note.equations)
         print("Links:")
         for link in note.links:

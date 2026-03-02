@@ -18,9 +18,9 @@ def build_notes(keywords, text=None):
 
     for keyword in keywords:
         # unpack keyword parts safely
-        name = keyword[0].strip()
-        concept = keyword[1].strip()
-        equation = keyword[2].strip() if len(keyword) > 2 else ""
+        name = keyword["keyword"].strip()
+        concept = keyword["summary"].strip()
+        equation = keyword["equation"].strip() if len(keyword) > 2 else ""
 
         note = Note(
             name=name,
