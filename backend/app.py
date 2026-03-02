@@ -137,13 +137,13 @@ def upload_notes():
             f.save(save_path)
             saved_paths.append(save_path)
 
-        all_notes = process_notes(saved_paths)
+        notes, graphs = process_notes(saved_paths)
 
         return jsonify({
             "message": "Upload successful",
             "username": username,
             "count": len(saved_paths),
-            "notes": all_notes,
+            "notes": notes,
         }), 200
 
     finally:

@@ -8,8 +8,8 @@ class Link:
     score: float
 
 @dataclass
-class Note:
+class Node:
     name: str
-    associated_phrases: List[str] = field(default_factory=list)
+    summary: List[str] = field(default_factory=list)
     equations: List[str] = field(default_factory=list)
     links: List[Link] = field(default_factory=list)
