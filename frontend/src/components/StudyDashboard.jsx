@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import KnowledgeGraph from './KnowledgeGraph';
 import { Layers, Home, Calendar, X, Swords, Shield, BookOpen, Search, Loader2 } from 'lucide-react';
+import QuizBattle from './QuizBattle';
 
 // --- THE LAYOUT ENGINE ---
 // This function takes messy data from Python and calculates perfect circular X/Y coordinates
@@ -40,6 +41,8 @@ const StudyDashboard = () => {
   const navigate = useNavigate();
   const [activeNode, setActiveNode] = useState(null);
   
+  const [isQuizMode, setIsQuizMode] = useState(false);
+
   // New States for fetching data
   const [graphData, setGraphData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -151,51 +154,73 @@ const StudyDashboard = () => {
       >
         {activeNode && (
           <>
-            <div className="flex items-center justify-between p-6 border-b border-white/10">
+            {/* Header (Always visible) */}
+            <div className="flex items-center justify-between p-6 border-b border-white/10 shrink-0">
               <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                {activeNode.id}
+                {isQuizMode ? "Battle Arena" : activeNode.id}
               </h2>
-              <button onClick={() => setActiveNode(null)} className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors">
+              <button 
+                onClick={() => {
+                  setActiveNode(null);
+                  setIsQuizMode(false); // Reset the quiz if they close the panel!
+                }} 
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+              >
                 <X className="w-5 h-5 text-gray-300" />
               </button>
             </div>
 
-            <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
-              <div className="mb-8">
-                <span className="text-xs font-semibold px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full uppercase tracking-wider mb-4 inline-block border border-blue-500/30">
-                  {activeNode.type ? activeNode.type.replace('_', ' ') : 'CONCEPT'}
-                </span>
-                <p className="text-gray-300 leading-relaxed text-sm mt-2">
-                  {activeNode.text}
-                </p>
+            {/* Content Swap: Quiz OR Reading Material */}
+            {isQuizMode ? (
+              // SHOW THE GAME
+              <div className="flex-1 overflow-hidden p-4">
+                <QuizBattle onExit={() => setIsQuizMode(false)} />
               </div>
+            ) : (
+              // SHOW THE NORMAL READING MATERIAL
+              <>
+                <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
+                  <div className="mb-8">
+                    <span className="text-xs font-semibold px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full uppercase tracking-wider mb-4 inline-block border border-blue-500/30">
+                      {activeNode.type ? activeNode.type.replace('_', ' ') : 'CONCEPT'}
+                    </span>
+                    <p className="text-gray-300 leading-relaxed text-sm mt-2">
+                      {activeNode.text}
+                    </p>
+                  </div>
 
-              <div className="mb-8">
-                <div className="flex items-center gap-2 mb-3">
-                  <BookOpen className="w-4 h-4 text-blue-400" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Source Document</span>
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-3">
+                      <BookOpen className="w-4 h-4 text-blue-400" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-blue-400">Source Document</span>
+                    </div>
+                    <div className="bg-[#1A1A1A] border border-gray-700/50 rounded-xl p-5 relative">
+                      <div className="text-gray-600 text-4xl absolute top-2 left-2 font-serif opacity-30">"</div>
+                      <p className="text-sm leading-loose relative z-10 text-gray-300">
+                        <mark className="bg-[#FDE047] text-black px-1.5 py-0.5 rounded font-medium">
+                          {activeNode.id}
+                        </mark> is essential to understanding the core foundation of this study set.
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-[#1A1A1A] border border-gray-700/50 rounded-xl p-5 relative">
-                  <div className="text-gray-600 text-4xl absolute top-2 left-2 font-serif opacity-30">"</div>
-                  <p className="text-sm leading-loose relative z-10 text-gray-300">
-                    <mark className="bg-[#FDE047] text-black px-1.5 py-0.5 rounded font-medium">
-                      {activeNode.id}
-                    </mark> is essential to understanding the core foundation of this study set.
-                  </p>
-                </div>
-              </div>
-            </div>
 
-            <div className="p-6 bg-gradient-to-t from-[#0B1120] to-transparent">
-              <button className="w-full relative group overflow-hidden rounded-xl p-[1px]">
-                <span className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 rounded-xl opacity-70 group-hover:opacity-100 transition-opacity duration-300"></span>
-                <div className="relative flex items-center justify-center gap-3 bg-[#131B2C] hover:bg-[#1A233A] transition-colors rounded-xl px-6 py-4">
-                  <Swords className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                  <span className="font-bold text-white tracking-wide">Challenge this Concept</span>
-                  <Shield className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                {/* The Button that triggers the Quiz */}
+                <div className="p-6 bg-gradient-to-t from-[#0B1120] to-transparent shrink-0">
+                  <button 
+                    onClick={() => setIsQuizMode(true)} // <-- THIS STARTS THE QUIZ!
+                    className="w-full relative group overflow-hidden rounded-xl p-[1px]"
+                  >
+                    <span className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 rounded-xl opacity-70 group-hover:opacity-100 transition-opacity duration-300"></span>
+                    <div className="relative flex items-center justify-center gap-3 bg-[#131B2C] hover:bg-[#1A233A] transition-colors rounded-xl px-6 py-4">
+                      <Swords className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
+                      <span className="font-bold text-white tracking-wide">Challenge this Concept</span>
+                      <Shield className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform" />
+                    </div>
+                  </button>
                 </div>
-              </button>
-            </div>
+              </>
+            )}
           </>
         )}
       </div>
