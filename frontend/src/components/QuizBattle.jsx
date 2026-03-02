@@ -1,41 +1,45 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Skull, User, ChevronRight } from 'lucide-react';
+const correctResponses = [
+  (answer) => `Correct. It is ${answer}.`,
+  (answer) => `Impressive. The correct answer is ${answer}.`,
+  (answer) => `That is right. ${answer}.`,
+  (answer) => `You are just about there. ${answer}.`
+];
 
+const wrongResponses = [
+  (answer) => `You are mistaken. Actually, it is ${answer}.`,
+  (answer) => `Incorrect. The correct answer is ${answer}.`,
+  (answer) => `Not quite. It is ${answer}.`,
+  (answer) => `That is wrong. The answer is ${answer}.`
+];
+const getRandom = (arr) =>
+  arr[Math.floor(Math.random() * arr.length)];
 const mockQuestions = [
+  
   {
     id: 1,
-    type: 'single',
+    type: 'open',
     question: "Wild SEMAPHORE appeared! What is its primary purpose in an operating system?",
-    options: [
-      "Allocate memory to processes",
-      "Control access to shared resources", 
-      "Prevent CPU overheating",
-      "Compile code faster"
-    ],
-    correctAnswer: "Control access to shared resources",
+    correctAnswer: "control access to shared resources",
     damage: 35
   },
   {
     id: 2,
-    type: 'multiple',
-    question: "RACE CONDITION used MULTI-THREAD! Which are true? (Select all)",
-    options: [
-      "Occurs when accessing shared data",
-      "Prevented using Mutex locks",
-      "Only happens in single-cores",
-      "Outcome depends on timing"
-    ],
-    correctAnswer: ["Occurs when accessing shared data", "Prevented using Mutex locks", "Outcome depends on timing"],
+    type: 'open',
+    question: "RACE CONDITION used MULTI-THREAD! What is a race condition?",
+    correctAnswer: "when multiple threads access shared data and the outcome depends on timing",
     damage: 40
   },
   {
     id: 3,
     type: 'open',
-    question: "Enemy DMA is charging! Explain how Direct Memory Access improves performance.",
-    correctKeywords: ["cpu", "memory", "without", "bypassing", "interrupt"], 
+    question: "Enemy DMA is charging! What does DMA stand for?",
+    correctAnswer: "direct memory access",
     damage: 50
   }
 ];
+
 
 const QuizBattle = ({ onExit }) => {
   const [playerHP, setPlayerHP] = useState(100);
@@ -71,20 +75,39 @@ const QuizBattle = ({ onExit }) => {
         selectedMultiple.length === currentQ.correctAnswer.length;
       isCorrect = isExactMatch;
     } else if (currentQ.type === 'open') {
-      const lowerAnswer = openAnswer.toLowerCase();
-      const hits = currentQ.correctKeywords.filter(kw => lowerAnswer.includes(kw));
-      isCorrect = hits.length >= 2;
+
+      const normalize = (str) =>
+        str
+          .toLowerCase()
+          .replace(/[^\w\s]/g, "")
+          .split(/\s+/)
+          .filter(Boolean);
+
+      const userTokens = normalize(openAnswer);
+      const correctTokens = normalize(currentQ.correctAnswer);
+
+      const intersection = userTokens.filter(token =>
+        correctTokens.includes(token)
+      );
+
+      const similarity =
+        intersection.length / Math.max(correctTokens.length, 1);
+
+      // Threshold (tune between 0.5–0.7)
+      isCorrect = similarity >= 0.6;
     }
 
     if (isCorrect) {
-      setFeedback("Companion used KNOWLEDGE! It's super effective!");
+      const response = getRandom(correctResponses)(currentQ.correctAnswer);
+      setFeedback("Companion used KNOWLEDGE! It's super effective! "+response);
       setIsPlayerAttacking(true);
       setTimeout(() => {
         setEnemyHP(prev => Math.max(0, prev - currentQ.damage));
         setIsPlayerAttacking(false);
       }, 500);
     } else {
-      setFeedback("Companion missed! The Enemy Concept strikes back!");
+      const response = getRandom(wrongResponses)(currentQ.correctAnswer);
+      setFeedback("Companion missed! The Enemy Concept strikes back! "+response);
       setIsEnemyAttacking(true);
       setTimeout(() => {
         setPlayerHP(prev => Math.max(0, prev - 30));
