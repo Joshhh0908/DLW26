@@ -2,10 +2,10 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/login";
 import CreateAccount from "./pages/createAccount";
 import PrivateRoute from "./components/privateRoute";
-
-// --- Import your new components here ---
+import PopulatedDashboard from "./components/PopulatedDashboard";
 import HomePage from "./components/HomePage";
 import StudyDashboard from "./components/StudyDashboard";
+import DashboardController from "./components/DashboardController";
 
 function App() {
   return (
@@ -19,7 +19,7 @@ function App() {
         {/* Protected Routes (Requires user to be logged in!) */}
         <Route element={<PrivateRoute />}>
           {/* We swapped out your teammate's placeholder for YOUR dashboard! */}
-          <Route path="/home" element={<HomePage />} /> 
+          <Route path="/home" element={<DashboardController />} />
           
           {/* Your Knowledge Graph Page */}
           <Route path="/study" element={<StudyDashboard />} />
