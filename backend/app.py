@@ -9,7 +9,6 @@ from functools import wraps
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
-
 from keyword_extraction.process_notes import process_notes
 
 
