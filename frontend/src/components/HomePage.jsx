@@ -1,209 +1,269 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Search, Sidebar, Calendar, LayoutGrid, BookOpen, MessageCircle, 
-  UserPlus, Mic, PenTool, PlayCircle, Upload, Flame, Settings, Bookmark,
-  ChevronDown, FileText, ArrowUpCircle, Info
+  Home, 
+  Layers, 
+  Calendar, 
+  MessageSquare, 
+  Settings, 
+  Bell, 
+  User, 
+  UploadCloud, 
+  Network, 
+  Swords, 
+  LogOut,
+  Loader2 // <-- Added a loading spinner icon
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null); // Reference to our hidden file input
+  
+  const [username, setUsername] = useState('Student');
+  const [greeting, setGreeting] = useState('Good evening');
+  
+  // New States for Drag & Drop
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  useEffect(() => {
+    const storedUsername = localStorage.getItem('username');
+    if (storedUsername) setUsername(storedUsername);
+
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning');
+    else if (hour < 18) setGreeting('Good afternoon');
+    else setGreeting('Good evening');
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    navigate('/');
+  };
+
+  // --- DRAG AND DROP LOGIC ---
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Prevents the browser from opening the PDF in a new tab
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadFiles(e.dataTransfer.files);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      uploadFiles(e.target.files);
+    }
+  };
+
+  // --- API UPLOAD LOGIC ---
+
+  const uploadFiles = async (files) => {
+    setIsUploading(true);
+
+    // Create a FormData object (This is how browsers send files to servers)
+    const formData = new FormData();
+    formData.append('username', username);
+    
+    // Your teammate's code looks for a list of files called "notes"
+    Array.from(files).forEach((file) => {
+      formData.append('notes', file);
+    });
+
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch('http://localhost:5000/notes-uploading', {
+        method: 'POST',
+        headers: {
+          // We MUST send the token, or the @token_required route will block us
+          'Authorization': `Bearer ${token}` 
+          // Note: Do NOT set 'Content-Type' manually when sending FormData!
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        // Success! Send the user to the study dashboard to see their graph
+        navigate('/study'); 
+      } else {
+        alert("There was a problem uploading your files. Please try again.");
+        setIsUploading(false);
+      }
+    } catch (error) {
+      console.error("Upload Error:", error);
+      alert("Could not connect to the backend server. Is Flask running?");
+      setIsUploading(false);
+    }
+  };
 
   return (
-    <div className="flex h-screen bg-white text-gray-800 font-sans">
+    <div className="flex h-screen bg-[#F4F7FB] font-sans">
       
-      {/* LEFT SIDEBAR */}
-      <aside className="w-64 border-r border-gray-200 flex flex-col h-full bg-white">
-        <div className="flex items-center justify-between p-4 border-b border-transparent">
-          <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-gray-900">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">🐕</div>
-            study thing
+      {/* --- LEFT SIDEBAR (Unchanged) --- */}
+      <div className="w-64 bg-white/60 backdrop-blur-xl border-r border-gray-100 flex flex-col justify-between">
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+              <Layers className="text-white w-5 h-5" />
+            </div>
+            <span className="font-bold text-xl text-gray-800">StudyFetch</span>
           </div>
-          <div className="flex gap-2 text-gray-500">
-            <Search className="w-5 h-5 cursor-pointer hover:text-gray-800" />
-            <Sidebar className="w-5 h-5 cursor-pointer hover:text-gray-800" />
+
+          <nav className="space-y-2">
+            <button className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 text-blue-600 rounded-xl font-medium transition-colors">
+              <Home className="w-5 h-5" />
+              Home
+            </button>
+            <div className="pt-4 pb-2">
+              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4">Locked Features</span>
+            </div>
+            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
+              <Layers className="w-5 h-5 opacity-50" />
+              My Sets
+            </button>
+            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
+              <Calendar className="w-5 h-5 opacity-50" />
+              Study Plan
+            </button>
+            <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-400 hover:text-gray-500 cursor-not-allowed transition-colors" title="Upload a document to unlock">
+              <MessageSquare className="w-5 h-5 opacity-50" />
+              Chat
+            </button>
+          </nav>
+        </div>
+        <div className="p-6 space-y-2">
+          <button className="flex items-center gap-3 w-full px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-xl transition-colors">
+            <Settings className="w-5 h-5" />
+            Settings
+          </button>
+          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+            <LogOut className="w-5 h-5" />
+            Logout
+          </button>
+        </div>
+      </div>
+
+      {/* --- MAIN CONTENT AREA --- */}
+      <div className="flex-1 flex flex-col relative overflow-hidden bg-gradient-to-tr from-[#F4F7FB] via-white to-[#FFF4E5]">
+        
+        <div className="absolute top-6 right-8 flex items-center gap-4 z-10">
+          <button className="p-2 text-gray-400 hover:text-gray-600 relative">
+            <Bell className="w-6 h-6" />
+            <span className="absolute top-1 right-2 w-2 h-2 bg-red-400 rounded-full"></span>
+          </button>
+          <div className="w-10 h-10 bg-gray-200 rounded-full border-2 border-white shadow-sm flex items-center justify-center text-gray-500 font-bold">
+            {username.charAt(0).toUpperCase()}
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          <div className="text-gray-600 space-y-1">
-            <NavItem icon={<BookOpen size={18}/>} label="My Sets" />
-            <NavItem icon={<Calendar size={18}/>} label="Calendar" />
-            <NavItem icon={<LayoutGrid size={18}/>} label="Mini Apps" />
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center p-12 max-w-5xl mx-auto w-full">
           
-          <div className="my-4 border-t border-gray-100"></div>
-
-          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-pink-100 rounded-full flex items-center justify-center text-xs">📜</div>
-              <span className="text-sm font-medium truncate w-24">IWC 117 - De...</span>
-            </div>
-            <ArrowUpCircle className="w-4 h-4 text-gray-400 rotate-90" />
+          <div className="w-full flex items-end justify-between mb-8">
+            <h1 className="text-5xl font-extrabold text-[#A67B5B] tracking-tight">
+              {greeting}, {username}!
+            </h1>
           </div>
 
-          <div className="text-gray-600 space-y-1">
-            <NavItem icon={<BookOpen size={18} className="text-teal-600"/>} label="Study Plan" />
-            <NavItem icon={<MessageCircle size={18} className="text-blue-500"/>} label="Chat" />
-            <NavItem icon={<UserPlus size={18} className="text-purple-500"/>} label="Tutor Me" />
-            <NavItem icon={<Mic size={18} className="text-pink-500"/>} label="Record Lecture" />
-            
-            <div className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer text-sm">
-              <div className="flex items-center gap-3"><PenTool size={18} className="text-teal-500"/> Practice</div>
-              <ChevronDown size={14} />
+          <div className="flex items-center w-full gap-8">
+            <div className="hidden md:flex flex-col items-center justify-center w-32 h-40 bg-white/50 backdrop-blur-sm rounded-2xl border border-white shadow-xl transform -rotate-3 hover:rotate-0 transition-transform duration-300">
+               <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                  <User className="w-8 h-8 text-blue-500" />
+               </div>
+               <span className="text-sm font-semibold text-gray-600">Ready to Learn?</span>
             </div>
-            
-            <div className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-lg cursor-pointer text-sm">
-              <div className="flex items-center gap-3"><PlayCircle size={18} className="text-pink-400"/> Audio & Video</div>
-              <ChevronDown size={14} />
-            </div>
-          </div>
-        </div>
 
-        <div className="p-4">
-          <button className="w-full flex items-center justify-center gap-2 border border-gray-200 hover:bg-gray-50 py-2 rounded-xl text-sm font-medium transition-colors">
-            <Upload size={16} /> Upload
-          </button>
-        </div>
-      </aside>
+            {/* --- HIDDEN FILE INPUT --- */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileSelect} 
+              className="hidden" 
+              multiple 
+              accept=".pdf,.txt,.doc,.docx" // Add or remove file types as needed
+            />
 
-      {/* MAIN CONTENT AREA */}
-      <main className="flex-1 flex flex-col overflow-hidden bg-white">
-        <header className="h-16 flex items-center justify-end px-6 gap-4">
-          <button className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
-            <ArrowUpCircle size={16} /> Upgrade
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full hover:bg-gray-50">
-            <Info size={16} className="text-gray-600"/>
-          </button>
-          <button className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-full hover:bg-gray-50">
-            <Upload size={16} className="text-gray-600"/>
-          </button>
-          <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold cursor-pointer">
-            G
-          </div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto p-8 pt-4">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-3xl">🐶</div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Good evening, ta!</h1>
-              <p className="text-gray-500">Which study set are you working on today?</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex gap-4">
-              <button className="flex items-center gap-2 border-2 border-blue-400 bg-blue-50 text-blue-700 px-4 py-2 rounded-xl font-medium">
-                <PlayCircle size={18} className="text-blue-500 fill-blue-100" />
-                <span className="text-xl">📜</span> IWC 117 - Dec...
-              </button>
-              <button className="flex items-center gap-2 border-2 border-dashed border-gray-300 text-gray-500 hover:text-gray-700 hover:border-gray-400 px-4 py-2 rounded-xl font-medium transition-colors">
-                + Add Set
-              </button>
-            </div>
-            <div className="flex items-center gap-4 text-blue-600 font-semibold text-sm">
-              <button className="hover:underline">+ Add Set</button>
-              <button className="flex items-center gap-1 hover:underline"><BookOpen size={16}/> See All My Sets</button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6">
+            {/* --- INTERACTIVE DROPZONE --- */}
             <div 
-              className="col-span-2 bg-[#eef2fc] rounded-3xl p-6 cursor-pointer hover:shadow-md transition-all hover:-translate-y-1"
-              onClick={() => navigate('/study')}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => !isUploading && fileInputRef.current.click()} // Opens the file browser
+              className={`flex-1 backdrop-blur-md border-4 border-dashed rounded-3xl p-16 flex flex-col items-center justify-center text-center transition-all shadow-lg 
+                ${isDragging 
+                  ? 'border-blue-500 bg-blue-50 scale-[1.02]' // Highlight when dragging over
+                  : 'border-gray-300 bg-white/80 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer group'
+                }
+                ${isUploading ? 'opacity-75 cursor-not-allowed' : ''}
+              `}
             >
-              <div className="flex items-start justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm text-blue-600 hover:scale-105 transition-transform">
-                    <PlayCircle size={24} className="fill-current" />
-                  </button>
-                  <div className="w-14 h-14 bg-pink-200 rounded-2xl flex items-center justify-center text-2xl border-4 border-white shadow-sm">
-                    📜
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900">IWC 117 - December 2024</h2>
-                    <p className="text-gray-500">1 materials</p>
-                  </div>
+              {isUploading ? (
+                // Loading State
+                <div className="flex flex-col items-center animate-pulse">
+                  <Loader2 className="w-16 h-16 text-blue-500 animate-spin mb-4" />
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">Analyzing your notes...</h2>
+                  <p className="text-xl text-gray-500">Generating knowledge graph</p>
                 </div>
-                <div className="flex gap-3 text-gray-600">
-                  <Bookmark className="w-6 h-6 cursor-pointer hover:text-gray-900" />
-                  <Settings className="w-6 h-6 cursor-pointer hover:text-gray-900" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <ToolCard icon={<PenTool className="text-orange-500"/>} label="0 Tests/Quizzes" />
-                <ToolCard icon={<PlayCircle className="text-blue-500"/>} label="0 Explainers" />
-                <ToolCard icon={<UserPlus className="text-purple-500"/>} label="0 Tutor Me" />
-                <ToolCard icon={<LayoutGrid className="text-pink-500"/>} label="0 Arcade" />
-                <ToolCard icon={<BookOpen className="text-emerald-500"/>} label="0 Flashcards" />
-                <div className="bg-white/60 p-4 rounded-xl flex items-center justify-between cursor-pointer hover:bg-white transition-colors">
-                  <div className="flex items-center gap-3 font-medium text-gray-800">
-                    <Mic className="text-purple-600"/> 1 Audio Recap
+              ) : (
+                // Normal State
+                <>
+                  <div className={`w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6 transition-transform ${!isDragging && 'group-hover:scale-110'}`}>
+                    <UploadCloud className={`w-12 h-12 ${isDragging ? 'text-blue-600' : 'text-blue-400'}`} />
                   </div>
-                  <ChevronDown size={16} className="text-gray-400" />
-                </div>
-              </div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                    {isDragging ? 'Drop your files here!' : 'Drag & drop your lecture slides or PDFs here,'}
+                  </h2>
+                  <p className="text-xl text-gray-500">
+                    {isDragging ? 'We will take it from here.' : (
+                      <>or <span className="text-blue-500 font-semibold underline decoration-2 underline-offset-4">click to browse</span>.</>
+                    )}
+                  </p>
+                </>
+              )}
             </div>
 
-            <div className="col-span-1 flex flex-col gap-6">
-              <div className="bg-gray-50 rounded-2xl p-5 flex items-center justify-between border border-gray-100">
-                <div className="flex items-center gap-2 font-bold text-lg">
-                  <Flame className="text-orange-500 fill-orange-500" /> 0 day streak!
-                </div>
-                <button className="text-sm font-semibold text-gray-500 hover:text-gray-800">View Leaderboard</button>
-              </div>
+          </div>
 
-              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex-1">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-lg">Materials</h3>
-                  <button className="border border-gray-300 px-3 py-1 rounded-lg text-sm font-medium hover:bg-gray-100 flex items-center gap-1">
-                    + Upload
-                  </button>
-                </div>
-                
-                <div className="flex items-start gap-3 mt-4">
-                  <FileText className="text-pink-600 w-8 h-8" />
-                  <div>
-                    <p className="font-medium text-gray-900 text-sm">iwc 117 dec 24.pdf</p>
-                    <p className="text-xs text-gray-500">Mar 1, 2026</p>
-                  </div>
-                </div>
-
-                <div className="mt-6 text-right">
-                  <button className="text-blue-600 font-semibold text-sm hover:underline">View All</button>
-                </div>
+          <div className="mt-16 flex items-center justify-center gap-12 text-gray-600 font-medium">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <UploadCloud className="w-6 h-6 text-orange-600" />
               </div>
-
-              <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2 font-bold text-lg">
-                  <Calendar className="text-gray-800" /> Upcoming
-                </div>
-                <ChevronDown size={20} className="text-gray-400" />
+              <span><span className="text-xs font-bold text-orange-500 mr-1">1</span> Upload Notes</span>
+            </div>
+            <div className="w-16 h-px bg-gray-300"></div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                <Network className="w-6 h-6 text-blue-600" />
               </div>
+              <span><span className="text-xs font-bold text-blue-500 mr-1">2</span> Generate Knowledge Map</span>
+            </div>
+            <div className="w-16 h-px bg-gray-300"></div>
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                <Swords className="w-6 h-6 text-purple-600" />
+              </div>
+              <span><span className="text-xs font-bold text-purple-500 mr-1">3</span> Battle Concepts</span>
             </div>
           </div>
+
         </div>
-      </main>
+      </div>
     </div>
   );
 };
-
-// Reusable components without TS interfaces
-const NavItem = ({ icon, label }) => (
-  <div className="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-lg cursor-pointer text-sm font-medium">
-    {icon}
-    <span>{label}</span>
-  </div>
-);
-
-const ToolCard = ({ icon, label }) => (
-  <div className="bg-white/60 p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-white transition-colors font-medium text-gray-800 shadow-sm border border-transparent hover:border-white">
-    {icon}
-    <span>{label}</span>
-  </div>
-);
 
 export default HomePage;
