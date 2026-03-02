@@ -5,7 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 const DashboardController = () => {
   {/*const [studySets, setStudySets] = useState([]);*/}
-  const [studySets, setStudySets] = useState([{ title: 'Test' }]); 
+  const [studySets, setStudySets] = useState([{ title: 'Test' }]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
