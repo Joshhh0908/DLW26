@@ -58,14 +58,16 @@ def process_notes(pdf_files):
         graph = generate_graph(note)
         graphs.append(graph)
     # Print the results
-    # for note in notes:
-    #     to_print = [asdict(keyword) for keyword in note]
-    #     print()
-    #     print()
-    #     print()
-    #     print()
-    #     print("===============================================")
-    #     print(to_print)
+    for note in notes:
+        to_print = [asdict(keyword) for keyword in note]
+        print("===============================================")
+
+        print()
+        print()
+        print()
+        print()
+        print("===============================================")
+        print(to_print)
         # for topic in note:
         #     # print("\n====================")
         #     # print("Concept:", note.name)
