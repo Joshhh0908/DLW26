@@ -17,7 +17,7 @@ const HomePage = () => {
         <div className="flex items-center justify-between p-4 border-b border-transparent">
           <div className="flex items-center gap-2 font-bold text-xl tracking-tight text-gray-900">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">🐕</div>
-            STUDYFETCH
+            study thing
           </div>
           <div className="flex gap-2 text-gray-500">
             <Search className="w-5 h-5 cursor-pointer hover:text-gray-800" />
@@ -88,7 +88,7 @@ const HomePage = () => {
           <div className="flex items-center gap-4 mb-8">
             <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-3xl">🐶</div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Good evening, gktbiaqlsulprqdhve!</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Good evening, ta!</h1>
               <p className="text-gray-500">Which study set are you working on today?</p>
             </div>
           </div>
