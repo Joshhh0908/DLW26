@@ -1,0 +1,89 @@
+/* notes.css */
+
+.notes-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f6f7fb;
+  padding: 24px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.notes-card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 380px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  text-align: center;
+}
+
+.notes-card h2 {
+  margin-bottom: 18px;
+}
+
+.notes-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notes-card input[type="file"] {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.notes-card button {
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.notes-card button:hover {
+  opacity: 0.92;
+}
+
+.file-list {
+  text-align: left;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fafafa;
+  max-height: 160px;
+  overflow: auto;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.file-item:last-child {
+  border-bottom: none;
+}
+
+.file-name {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.notes-status {
+  margin-top: 14px;
+  font-size: 14px;
+  color: #374151;
+}

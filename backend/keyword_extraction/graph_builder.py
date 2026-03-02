@@ -1,36 +1,18 @@
-from models import Note, Link
-from equation_utils import (
+from dataclasses import asdict
+
+from .models import Link, Node
+from .equation_utils import (
     extract_equations,
     normalize_equation,
     tree_signature,
     structural_similarity,
     are_isomorphic
 )
+from .pre_requisite_agent import extract_prereq_edges
+from sentence_transformers import SentenceTransformer, util
+import numpy as np
+import json
 
-
-def build_notes(keywords, text=None):
-    """
-    Build Note objects from LLM-extracted keywords.
-    Each keyword is expected to be [name, concept, equation].
-    Keeps the same function signature and return type.
-    """
-    notes = []
-
-    for keyword in keywords:
-        # unpack keyword parts safely
-        name = keyword["keyword"].strip()
-        concept = keyword["summary"].strip()
-        equation = keyword["equation"].strip() if len(keyword) > 2 else ""
-
-        note = Note(
-            name=name,
-            associated_phrases=[concept],
-            equations=[equation] if equation else []
-        )
-
-        notes.append(note)
-
-    return notes
 
 
 def create_equation_links(notes, max_links=3, similarity_threshold=0.4):
@@ -70,3 +52,31 @@ def create_equation_links(notes, max_links=3, similarity_threshold=0.4):
 
         for target, link_type, score in scores:
             note_i.links.append(Link(target, link_type, score))
+
+def generate_related(notes : list[Node]):
+    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+
+    embeddings = model.encode([f"Topic: {note.name} Description: {note.summary}" for note in notes], normalize_embeddings=True)
+    sim_matrix = util.cos_sim(embeddings, embeddings).cpu().numpy()  # (N, N)
+    threshold = 0.7
+    related_edges = []
+
+    n = len(notes)
+    for i in range(n):
+        for j in range(i + 1, n):
+            s = sim_matrix[i, j]
+            if s >= threshold:
+                related_edges.append((notes[i].name, notes[j].name))
+
+    return related_edges
+
+def generate_prerequisite(notes: list[Node]):
+    subtopics = [asdict(note) for note in notes]
+
+    pre_requisite_edges = extract_prereq_edges(json.dumps(subtopics, ensure_ascii=False))
+    return pre_requisite_edges
+
+def generate_graph(notes: list[Node]):
+    related = generate_related(notes)
+    pre_req = generate_prerequisite(notes)
+    return (related, pre_req)

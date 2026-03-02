@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/login";
+import Notes from "./pages/notes";
 import CreateAccount from "./pages/createAccount";
 import PrivateRoute from "./components/privateRoute";
 import PopulatedDashboard from "./components/PopulatedDashboard";
@@ -19,12 +20,13 @@ function App() {
 
         {/* Protected Routes */}
         <Route element={<PrivateRoute />}>
-          {/* Wrap protected routes in MainLayout to keep sidebar persistent */}
-          <Route element={<MainLayout />}>
-            <Route path="/home" element={<DashboardController />} />
-            <Route path="/study" element={<StudyDashboard />} />
-            <Route path="/knowledge" element={<KnowledgeGraph />} />
-          </Route>
+          {/* We swapped out your teammate's placeholder for YOUR dashboard! */}
+          <Route path="/home" element={<DashboardController />} />
+          
+          {/* Your Knowledge Graph Page */}
+          <Route path="/study" element={<StudyDashboard />} />
+          <Route path="/notes" element={<Notes />} />
+          <Route path="/knowledge" element={<KnowledgeGraph />} />
         </Route>
       </Routes>
     </Router>
