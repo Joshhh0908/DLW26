@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import KnowledgeGraph from './KnowledgeGraph';
-import { Layers, Home, Calendar, X, Swords, Shield, BookOpen, Search } from 'lucide-react';
+import { X } from 'lucide-react';
 import QuizBattle from './QuizBattle';
 
 function generateLeftToRightLayout(nodes, links) {
@@ -10,7 +10,6 @@ function generateLeftToRightLayout(nodes, links) {
   const nodeIds = nodes.map(n => n.id);
   const idToNode = new Map(nodes.map(n => [n.id, { ...n }]));
 
-  // Build indegree + adjacency
   const indegree = new Map(nodeIds.map(id => [id, 0]));
   const adj = new Map(nodeIds.map(id => [id, []]));
 
@@ -20,14 +19,13 @@ function generateLeftToRightLayout(nodes, links) {
     indegree.set(target, indegree.get(target) + 1);
   }
 
-  // Kahn topo order + compute "level"
   const level = new Map(nodeIds.map(id => [id, 0]));
   const queue = [];
+
   for (const [id, deg] of indegree.entries()) {
     if (deg === 0) queue.push(id);
   }
 
-  // if there are cycles or no roots, just treat all as roots
   if (queue.length === 0) queue.push(...nodeIds);
 
   while (queue.length) {
@@ -39,7 +37,6 @@ function generateLeftToRightLayout(nodes, links) {
     }
   }
 
-  // Group nodes by level
   const layers = new Map();
   for (const id of nodeIds) {
     const L = level.get(id) ?? 0;
@@ -50,9 +47,8 @@ function generateLeftToRightLayout(nodes, links) {
   const numLayers = layers.size;
   const maxLayerSize = Math.max(...Array.from(layers.values()).map(a => a.length));
 
-  // Assign coordinates
-  const availableW = window.innerWidth - 256 - 80; // sidebar + padding
-  const availableH = window.innerHeight - 120;      // padding
+  const availableW = window.innerWidth - 256 - 80;
+  const availableH = window.innerHeight - 120;
 
   const xSpacing = Math.max(220, availableW / Math.max(numLayers - 1, 1));
   const ySpacing = Math.max(170, availableH / Math.max(maxLayerSize - 1, 1));
@@ -60,10 +56,8 @@ function generateLeftToRightLayout(nodes, links) {
   const startX = 140;
   const startY = 120;
 
-  // Center each layer vertically relative to the biggest layer
-
   for (const [L, ids] of layers.entries()) {
-    ids.sort(); // stable-ish
+    ids.sort();
     const layerHeight = (ids.length - 1) * ySpacing;
     const totalHeight = (maxLayerSize - 1) * ySpacing;
     const yOffset = (totalHeight - layerHeight) / 2;
@@ -80,12 +74,12 @@ function generateLeftToRightLayout(nodes, links) {
 }
 
 const StudyDashboard = () => {
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const [activeNode, setActiveNode] = useState(null);
   const [isQuizMode, setIsQuizMode] = useState(location.state?.startInQuizMode || false);
   const [graphData, setGraphData] = useState(null);
+  const [popupContent, setPopupContent] = useState(null);
+  const popupRef = useRef(null);
 
   useEffect(() => {
     const payload = location.state?.studySet;
@@ -108,6 +102,23 @@ const StudyDashboard = () => {
     setGraphData({ nodes: nodesWithCoordinates, links });
   }, [location.state]);
 
+  // Close popup on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        setPopupContent(null);
+      }
+    }
+
+    if (popupContent) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [popupContent]);
+
   if (!graphData) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#060B14] text-white">
@@ -116,27 +127,82 @@ const StudyDashboard = () => {
     );
   }
 
-  return (
+  const openPopup = (event, title, summary) => {
+    const popupWidth = 420;
+    const popupHeight = 300;
 
-      <div className="absolute top-0 left-0 right-0 bottom-0 overflow-auto z-10 flex">
-        {isQuizMode ? (
-          <div className="flex-1 w-full h-full">
-            <QuizBattle onExit={() => setIsQuizMode(false)} />
+    let x = event.clientX + 15;
+    let y = event.clientY + 15;
+
+    if (x + popupWidth > window.innerWidth) {
+      x = window.innerWidth - popupWidth - 20;
+    }
+
+    if (y + popupHeight > window.innerHeight) {
+      y = window.innerHeight - popupHeight - 20;
+    }
+
+    setPopupContent({
+      title,
+      summary,
+      x,
+      y
+    });
+  };
+
+  return (
+    <div className="absolute inset-0 overflow-auto z-10 flex">
+      {isQuizMode ? (
+        <div className="flex-1 w-full h-full">
+          <QuizBattle onExit={() => setIsQuizMode(false)} />
+        </div>
+      ) : (
+        <div className="flex-1 overflow-auto relative">
+          <div style={{ width: 3000, height: 2000, position: "relative" }}>
+            <KnowledgeGraph
+              graphData={graphData}
+              onNodeClick={(node, event) => {
+                openPopup(event, node.id, node.summary);
+              }}
+              onLinkClick={(link, event) => {
+                openPopup(
+                  event,
+                  `${link.source} → ${link.target}`,
+                  `${link.target} is related to ${link.source} because ${link.target} is derived from ${link.source}.`
+                );
+              }}
+              disablePan
+            />
           </div>
-        ) : (
-          <div className="flex-1 overflow-auto relative">
-            <div style={{ width: 3000, height: 2000, position: "relative" }}>
-              <KnowledgeGraph
-                graphData={graphData}
-                onNodeClick={setActiveNode}
-                selectedNode={activeNode}
-                disablePan
-              />
+
+          {popupContent && (
+            <div
+              ref={popupRef}
+              className="fixed bg-[#0F172A] text-white p-6 rounded-xl shadow-2xl border border-slate-600 w-[420px] max-h-[300px] overflow-y-auto z-50"
+              style={{
+                left: popupContent.x,
+                top: popupContent.y
+              }}
+            >
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold">{popupContent.title}</h3>
+                <button
+                  onClick={() => setPopupContent(null)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="text-sm text-gray-300 text-justify leading-relaxed">
+                {popupContent.summary || "No summary available."}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-      );
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default StudyDashboard;
+export default StudyDashboard;  
